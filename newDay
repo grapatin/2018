@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "print $1"
+
+cp -R "template" "./$1"
