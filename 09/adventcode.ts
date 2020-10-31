@@ -3,7 +3,69 @@ import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
 import { assert } from "console";
+import { type } from "os";
 const readFile = util.promisify(fs.readFile);
+
+class Marble {
+    id: number;
+    next: Marble;
+    previous: Marble;
+    constructor(id: number) {
+        this.id = id;
+    }
+
+    getNextMarble() {
+        return this.next;
+    }
+
+    getPreviousMarble() {
+        return this.previous;
+    }
+
+    insertAsNextMarbleInCircle(marble: Marble) {
+        if (this.next != null) {
+            let existingNextMarble = this.getNextMarble();
+            existingNextMarble.previous = marble;
+            marble.setNextMarble(existingNextMarble);
+        }
+        marble.setPerviousMarble(this);
+        this.next = marble;
+
+    }
+
+    setNextMarble(marble: Marble) {
+        this.next = marble;
+    }
+
+    setPerviousMarble(marble: Marble) {
+        this.previous = marble;
+    }
+
+    removeMarbleFromCircle() {
+        let existingNextMarble = this.getNextMarble();
+        let existingPreviousMarble = this.getPreviousMarble();
+        existingNextMarble.setPerviousMarble(existingPreviousMarble);
+        existingPreviousMarble.setNextMarble(existingNextMarble);
+
+        return existingNextMarble;
+    }
+
+    marbleXStepsForward(x: number) {
+        let marble: Marble = this;
+        for (let step = 0; step < x; step++) {
+            marble = marble.getNextMarble();
+        }
+        return marble;
+    }
+
+    marbleXStepsBackward(x: number) {
+        let marble: Marble = this;
+        for (let step = 0; step < x; step++) {
+            marble = marble.getPreviousMarble();
+        }
+        return marble;
+    }
+}
 
 
 function inputData(typeOfData: String) {
@@ -55,60 +117,37 @@ function processInput(typeofData: string) {
 
 function partA(typeOfData: string): number {
     let input: Array<number> = processInput(typeOfData);
-    let activeMarble: number = 0, maxScore: number = 0;
+    let maxScore: number = 0;
     const players: number = input[0];
-    const maxNumberOfMarbels: number = input[1];
-    let currentPlayer: number = 0;
-    let numberOfMarbelsInPlay: number = 0;
-    let circleOfMarbels: Array<number> = new Array(1).fill(-1);
+    const maxNumberOfMarbels: number = input[1] + 1;
     let playerScore: Array<number> = new Array(players).fill(0);
+    let currentPlayer: number = 0;
 
-    //Start with placing marble 0 
-    circleOfMarbels[0] = 0;
-    activeMarble = 1;
-    numberOfMarbelsInPlay = 1;
+    let circle = new Marble(0);
+    circle.next = circle;
+    circle.previous = circle;
+    let activeMarble: Marble = circle;
 
-    for (let marbleBeingPlayed = 1; marbleBeingPlayed < maxNumberOfMarbels + 1; marbleBeingPlayed++) {
-        //check where it should be added
-        let onStep = (activeMarble + 1) % numberOfMarbelsInPlay;
-        let twoSteps = (activeMarble + 2) % numberOfMarbelsInPlay;
-        let sevenStepsBackword = (activeMarble - 7);
-        if (sevenStepsBackword < 0) {
-            sevenStepsBackword = numberOfMarbelsInPlay - sevenStepsBackword;
+    for (let i = 1; i < maxNumberOfMarbels; i++) {
+        let newMarble: Marble = new Marble(i);
+        if ((newMarble.id % 23) != 0) {
+            activeMarble = activeMarble.marbleXStepsForward(1);
+            activeMarble.insertAsNextMarbleInCircle(newMarble);
+            activeMarble = newMarble;
+        } else {
+            //The specialcase, save newMarble and remove the one 7 steps back
+            playerScore[currentPlayer] += newMarble.id;
+            activeMarble = activeMarble.marbleXStepsBackward(7);
+            playerScore[currentPlayer] += activeMarble.id;
+            activeMarble = activeMarble.removeMarbleFromCircle();
         }
-        if (twoSteps == 0) {
-            twoSteps = numberOfMarbelsInPlay;
+        if (currentPlayer == players - 1) {
+            currentPlayer = 0;
+        } else {
+            currentPlayer++;
         }
-
-        if ((marbleBeingPlayed % 23) == 0) {
-            //1. keep marble and add it as score
-            playerScore[currentPlayer] += marbleBeingPlayed;
-            //2. Remove marble 7 steps counterclockwis and keep it as score
-            if (circleOfMarbels[sevenStepsBackword] == NaN) {
-                assert();
-            }
-            playerScore[currentPlayer] += circleOfMarbels[sevenStepsBackword];
-            circleOfMarbels.splice(sevenStepsBackword, 1);
-            //3. set current marble to the pos that was removed
-            activeMarble = sevenStepsBackword;
-            //4. update number of marbels
-            numberOfMarbelsInPlay--;
-
-            if (numberOfMarbelsInPlay == activeMarble) {
-                activeMarble = 0;
-            }
-        }
-        else {
-            circleOfMarbels.splice(twoSteps, 0, marbleBeingPlayed);
-            activeMarble = twoSteps;
-            numberOfMarbelsInPlay++;
-        }
-
-
-        currentPlayer++
-        //wrapplayer, however no player 0
-        currentPlayer = currentPlayer % (players);
     }
+
 
     playerScore.forEach(playerScore => {
         if (playerScore > maxScore) {
