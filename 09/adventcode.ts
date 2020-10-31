@@ -161,7 +161,45 @@ function partA(typeOfData: string): number {
 function partB(typeOfData: string, noWorkers: number, offset: number): number {
     let input: Array<number> = processInput(typeOfData);
 
-    return 0;
+    let maxScore: number = 0;
+    const players: number = input[0];
+    const maxNumberOfMarbels: number = (input[1] * 100) + 1;
+    let playerScore: Array<number> = new Array(players).fill(0);
+    let currentPlayer: number = 0;
+
+    let circle = new Marble(0);
+    circle.next = circle;
+    circle.previous = circle;
+    let activeMarble: Marble = circle;
+
+    for (let i = 1; i < maxNumberOfMarbels; i++) {
+        let newMarble: Marble = new Marble(i);
+        if ((newMarble.id % 23) != 0) {
+            activeMarble = activeMarble.marbleXStepsForward(1);
+            activeMarble.insertAsNextMarbleInCircle(newMarble);
+            activeMarble = newMarble;
+        } else {
+            //The specialcase, save newMarble and remove the one 7 steps back
+            playerScore[currentPlayer] += newMarble.id;
+            activeMarble = activeMarble.marbleXStepsBackward(7);
+            playerScore[currentPlayer] += activeMarble.id;
+            activeMarble = activeMarble.removeMarbleFromCircle();
+        }
+        if (currentPlayer == players - 1) {
+            currentPlayer = 0;
+        } else {
+            currentPlayer++;
+        }
+    }
+
+
+    playerScore.forEach(playerScore => {
+        if (playerScore > maxScore) {
+            maxScore = playerScore;
+        }
+    })
+
+    return maxScore;
 }
 
 function main() {
