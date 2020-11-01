@@ -42,24 +42,28 @@ function inputData(typeOfData: String) {
 }
 
 function processInput(typeofData: string) {
-    let rawInput = inputData(typeofData).split(' ');
-    let inputArray: Array<number> = new Array();
+    let rawInput = inputData(typeofData);
 
-    rawInput.forEach(element => {
-        inputArray.push(+element);;
+    let inputArray: Array<String> = new Array();
+    const regex: RegExp = /(-?[0-9]+[,]\s+-?[0-9]+)/gmus;
+
+    let temp = rawInput.match(regex);
+
+    temp.forEach(element => {
+        inputArray.push(element);
     })
 
     return inputArray;
 }
 
 function partA(typeOfData: string): number {
-    let input: Array<number> = processInput(typeOfData);
+    let input: Array<String> = processInput(typeOfData);
 
     return 0;
 }
 
-function partB(typeOfData: string, noWorkers: number, offset: number): number {
-    let input: Array<number> = processInput(typeOfData);
+function partB(typeOfData: string): number {
+    let input: Array<String> = processInput(typeOfData);
 
     return 0;
 }
@@ -70,12 +74,12 @@ function main() {
     console.log('Puzzle part 1 solution is', resultPart1);
 
     TestsForPart2();
-    let resultPart2 = partB('PartB', 5, 60);
+    let resultPart2 = partB('PartB');
     console.log('Puzzle part 2 solution is', resultPart2);
 
 
     function TestsForPart2() {
-        let testCalc = partB('Part2Test1', 2, 0);
+        let testCalc = partB('Part2Test1');
         if (testCalc == test2_ex1Result) {
             console.log('Puzzle part 2 example 1 passed');
         } else {
