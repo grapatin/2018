@@ -63,21 +63,21 @@ export class PointsOfLigth {
         this.stringToPrint = a.join('');
     }
 
-    calculateDistance() {
+    measureArea() {
         //Add the ligth #
-        let distance = 0;
-        this.arrayOfLigths.forEach(light => {
-            distance += Math.abs(light.x) + Math.abs(light.y)
-        })
-        return distance;
+        let area = 0;
+        this.setMinMax();
+        area = (this.maxY - this.minY) * (this.maxX - this.minY)
+
+        return area;
     }
     consoleLogCurrentState() {
         this.stringToPrint = '';
         //Create empty string with ...
         //y number of lines, x number of chars per linx
         this.setMinMax();
-        let numberOfLines = 1 + Math.abs(this.minY) + this.maxY;
-        let numberOfCharsPerLine = 1 + Math.abs(this.minX) + this.maxX;
+        let numberOfLines = this.maxY - this.minY + 1;
+        let numberOfCharsPerLine = this.maxX - this.minX + 1;
         for (let line = 0; line < numberOfLines; line++) {
             for (let char = 0; char < numberOfCharsPerLine; char++) {
                 this.stringToPrint += '.'
@@ -88,7 +88,7 @@ export class PointsOfLigth {
 
         this.arrayOfLigths.forEach(light => {
             //Calculate where to put it +1 for \n
-            let position = Math.abs(this.minY - light.y) * (numberOfCharsPerLine + 1) + Math.abs(this.minX - light.x);
+            let position = (light.y - this.minY) * (numberOfCharsPerLine + 1) + (light.x - this.minX);
             this.replaceAt(position, '#');
         })
 
