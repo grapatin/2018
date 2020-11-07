@@ -4,6 +4,8 @@ import * as util from 'util'
 import { defaultMaxListeners } from "stream";
 const readFile = util.promisify(fs.readFile);
 
+const size = 1000;
+
 
 function inputData(typeOfData: String) {
     let returnData: string;
@@ -56,10 +58,21 @@ function processInput(typeofData: string) {
     return inputArray;
 }
 
+class Plant {
+    plantId: number;
+    hasAPlant: number;
+    constructor(plantId: number = 0, hasAPlant: number = 0) {
+        this.plantId = plantId;
+        this.hasAPlant = hasAPlant;
+    }
+}
+
 class PlantProcessing {
     breedPatterns: Array<number>
     plantArray: Array<string>
-    constructor(breedInput: Array<String>, plantArray: Array<string>) {
+    plantMap: Map<number, Plant> = new Map;
+
+    constructor(breedInput: Array<String>, plantArray) {
         this.breedPatterns = new Array(32).fill(0);
         for (let i = 0; i < breedInput.length; i += 2) {
             let pattern = breedInput[i];
@@ -68,26 +81,80 @@ class PlantProcessing {
             //console.log('Binary Pattern:', binaryPattern);
             this.breedPatterns[binaryPattern] = breed;
         }
-        this.plantArray = plantArray;
+        plantArray.forEach((element, index) => {
+            let plant: Plant = new Plant();
+            plant.hasAPlant = element;
+            plant.plantId = index;
+            if (plant.hasAPlant == 1) {
+                this.plantMap.set(plant.plantId, plant);
+            }
+        });
     }
-    growOneGeneration() {
-        //copy existing array into new array
-        let orgArray = this.plantArray.slice();
-        //take the first 5 values of orgArray, check against breedPattern and update this.plantArray.slice
 
-        for (let i = 2; i < orgArray.length - 2; i++) {
-            let pattern = parseInt(orgArray[i - 2] + orgArray[i - 1] + orgArray[i] + orgArray[i + 1] + orgArray[i + 2], 2);
-            this.plantArray[i] = this.breedPatterns[pattern].toString();
+    chechforPlant(index: number): number {
+        if (this.plantMap.has(index)) {
+            return +this.plantMap.get(index).hasAPlant;
+        } else {
+            return 0;
         }
+    }
+
+    growOneGeneration() {
+        let newPlantMap: Map<number, Plant> = new Map;
+        let firstValue: number;
+        let lastValue: number;
+
+        let keyArray: Array<number> = [...this.plantMap.keys()];
+        let sortedKeyArray = keyArray.sort((a, b) => a - b);
+        firstValue = sortedKeyArray[0];
+        lastValue = sortedKeyArray[sortedKeyArray.length - 1];
+
+        for (let i = firstValue - 2; i < lastValue + 2; i++) {
+            let bit_0: number;
+            let bit_1: number;
+            let bit_2: number;
+            let bit_3: number;
+            let bit_4: number;
+
+            bit_0 = this.chechforPlant(i + 2);
+            bit_1 = this.chechforPlant(i + 1);
+            bit_2 = this.chechforPlant(i);
+            bit_3 = this.chechforPlant(i - 1);
+            bit_4 = this.chechforPlant(i - 2);
+
+            let pattern = bit_0 + bit_1 * 2 + bit_2 * 4 + bit_3 * 8 + bit_4 * 16;
+            let isItAnewPlant = this.breedPatterns[pattern];
+
+            if (isItAnewPlant) {
+                let _plant = new Plant;
+                _plant.plantId = i;
+                _plant.hasAPlant = isItAnewPlant;
+                newPlantMap.set(i, _plant)
+            }
+        }
+
+        this.plantMap = newPlantMap;
     }
     calculateScore(): number {
-        let score = -40;
         let sum = 0;
-        for (let i = 0; i < this.plantArray.length; i++) {
-            sum += +this.plantArray[i] * score;
-            score++;
-        }
+
+        this.plantMap.forEach(plant => {
+            sum += plant.plantId;
+        })
         return sum;
+    }
+
+    consoleLogPlants() {
+        let keyArray: Array<number> = [...this.plantMap.keys()];
+        let sortedKeyArray = keyArray.sort((a, b) => a - b);
+        let firstValue = sortedKeyArray[0];
+        let lastValue = sortedKeyArray[sortedKeyArray.length - 1];
+        let outPutString: string = '';
+
+        for (let i = firstValue; i < lastValue; i++) {
+            outPutString += this.chechforPlant(i);
+        }
+        console.log('Current Plants:', outPutString);
     }
 }
 
@@ -96,33 +163,35 @@ class PlantProcessing {
 function partA(typeOfData: string): number {
     let input: Array<String> = processInput(typeOfData);
     let plantArray = input.shift().split('#').join('1').split('.').join('0').split('');
-    add40EmptyStartandStopPots();
 
 
     let plantProcessing = new PlantProcessing(input, plantArray);
-    console.log('result', plantProcessing.plantArray.join(''));
     for (let i = 0; i < 20; i++) {
         plantProcessing.growOneGeneration();
-        console.log('result', plantProcessing.plantArray.join(''));
+        plantProcessing.consoleLogPlants();
     }
 
-    console.log('result', plantProcessing.plantArray.join(''));
     let score = plantProcessing.calculateScore()
 
     return score;
-
-    function add40EmptyStartandStopPots() {
-        for (let i = 0; i < 40; i++) {
-            plantArray.unshift('0');
-            plantArray.push('0');
-        }
-    }
 }
 
 function partB(typeOfData: string): number {
     let input: Array<String> = processInput(typeOfData);
+    let plantArray = input.shift().split('#').join('1').split('.').join('0').split('');
+    let score: number;
 
-    return 0;
+    let plantProcessing = new PlantProcessing(input, plantArray);
+    for (let i = 0; i < 1000; i++) {
+        plantProcessing.growOneGeneration();
+        //plantProcessing.consoleLogPlants();
+        score = plantProcessing.calculateScore()
+        console.log('At ', i, 'days score is:', score);
+    }
+
+    score = score + 80 * (50000000000 - 1000)
+
+    return score;
 }
 
 function main() {
@@ -130,7 +199,7 @@ function main() {
     let resultPart1 = partA('PartA');
     console.log('Puzzle part 1 solution is', resultPart1);
 
-    TestsForPart2();
+    //TestsForPart2();
     let resultPart2 = partB('PartB');
     console.log('Puzzle part 2 solution is', resultPart2);
 
