@@ -69,7 +69,6 @@ class Plant {
 
 class PlantProcessing {
     breedPatterns: Array<number>
-    plantArray: Array<string>
     plantMap: Map<number, Plant> = new Map;
 
     constructor(breedInput: Array<String>, plantArray) {
