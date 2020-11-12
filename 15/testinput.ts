@@ -1,4 +1,4 @@
-export const puzzle1_number_of_test = 4;
+export const puzzle1_number_of_test = 5;
 //First part
 export const puzzle1_ex = new Array;
 export const puzzle1_resultex = new Array;

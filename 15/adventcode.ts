@@ -61,8 +61,6 @@ function inputData(typeOfData: String) {
             //console.log('Puzzle input', returnData);
             break;
         default:
-            console.error('Data load failed')
-
             break;
     }
     return returnData;
@@ -294,7 +292,7 @@ class Dungeon {
         this.dungeonMap[GoE.yCord][GoE.xCord] = GoE.char;
     }
 
-    removeGoE(GoE: GoblinOrElv) {
+    removeGoE(GoE: GoblinOrElv): number {
         //delete from map
         this.dungeonMap[GoE.yCord][GoE.xCord] = '.';
         this.goblinsAndElvesMap.delete(GoE.char);
@@ -305,7 +303,7 @@ class Dungeon {
         else {
             assert(true, 'Unexpected error');
         }
-
+        return index;
     }
 
     AreThereAnyGoblinsLeft(): boolean {
@@ -321,7 +319,10 @@ class Dungeon {
     }
 
     actionTime() {
-        this.goblinsAndElvesArray.forEach((GoE => {
+        let index: number = this.goblinsAndElvesArray.length;
+        for (let loop = 0; loop < this.goblinsAndElvesArray.length; loop++) {
+            let GoE = this.goblinsAndElvesArray[loop];
+
             let enemy: GoblinOrElv = this.findClosestEnemy(GoE);
             if (enemy != null) {
                 GoE.setClosetsEnemy(enemy, this.tempClosestEnemyPath);
@@ -329,7 +330,10 @@ class Dungeon {
                 if (combatTime) {
                     enemy.hp -= 3
                     if (enemy.hp < 1) {
-                        this.removeGoE(enemy);
+                        index = this.removeGoE(enemy);
+                        if (index < loop) {
+                            loop--;
+                        }
                     }
                 } else {
                     this.moveAgainstEnemy(GoE);
@@ -338,12 +342,15 @@ class Dungeon {
                     if (combatTime) {
                         enemy.hp -= 3
                         if (enemy.hp < 1) {
-                            this.removeGoE(enemy);
+                            index = this.removeGoE(enemy);
+                            if (index < loop) {
+                                loop--;
+                            }
                         }
                     }
                 }
             }
-        }))
+        }
         this.sortInReadingOrder();
     }
 }
