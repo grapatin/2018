@@ -1,4 +1,4 @@
-import { puzzle1_ex1, puzzle1_ex2, puzzle1_ex3, puzzle2_ex1, puzzle2_ex2, puzzle2_ex3, test1_ex1Result, test1_ex2Result, test1_ex3Result, test2_ex1Result, test2_ex2Result, test2_ex3Result } from "./testinput";
+import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_number_of_test, puzzle2_resultex } from "./testinput";
 import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
@@ -8,25 +8,15 @@ const readFile = util.promisify(fs.readFile);
 function inputData(typeOfData: String) {
     let returnData: string;
     //load data    
+    if (typeOfData.startsWith('T1_')) {
+        let num = typeOfData.substring(3);
+        returnData = puzzle1_ex[+num];
+    }
+    if (typeOfData.startsWith('T2_')) {
+        let num = typeOfData.substring(3);
+        returnData = puzzle1_ex[+num];
+    }
     switch (typeOfData) {
-        case 'Test1':
-            returnData = puzzle1_ex1;
-            break;
-        case 'Test2':
-            returnData = puzzle1_ex2;
-            break;
-        case 'Test3':
-            returnData = puzzle1_ex3;
-            break;
-        case 'Part2Test1':
-            returnData = puzzle2_ex1;
-            break;
-        case 'Part2Test2':
-            returnData = puzzle2_ex2;
-            break;
-        case 'Part2Test3':
-            returnData = puzzle2_ex3;
-            break;
         case 'PartA':
         case 'PartB':
             let fileString = fs.readFileSync('./puzzleInput1.txt', 'utf8');
@@ -34,8 +24,6 @@ function inputData(typeOfData: String) {
             //console.log('Puzzle input', returnData);
             break;
         default:
-            console.error('Data load failed')
-
             break;
     }
     return returnData;
@@ -70,7 +58,7 @@ function partB(typeOfData: string): number {
 
 function main() {
     TestsForPart1();
-    let resultPart1 = partA('PartA');
+    let resultPart1 = partA('PartA'); //Answer is between 267592 and 270165
     console.log('Puzzle part 1 solution is', resultPart1);
 
     TestsForPart2();
@@ -79,49 +67,25 @@ function main() {
 
 
     function TestsForPart2() {
-        let testCalc = partB('Part2Test1');
-        if (testCalc == test2_ex1Result) {
-            console.log('Puzzle part 2 example 1 passed');
-        } else {
-            console.log('Puzzle part 2 example 1 failed got', testCalc, 'expected', test2_ex1Result);
+        for (let i = 0; i < puzzle2_number_of_test; i++) {
+            let testCalc = partB('T2_' + i);
+            if (testCalc == puzzle2_resultex[i]) {
+                console.log('Puzzle part 2 example', i, 'passed');
+            } else {
+                console.log('Puzzle part 2 example', i, 'failed got', testCalc, 'expected', puzzle2_resultex[i]);
+            }
         }
-        /*
-        testCalc = partB('Part2Test2');
-        if (testCalc == test2_ex2Result) {
-            console.log('Puzzle part 2 example 2 passed');
-        } else {
-            console.log('Puzzle part 2 example 2 failed got', testCalc, 'expected', test2_ex2Result);
-        }
-        testCalc = partB('Part2Test3');
-        if (testCalc == test2_ex3Result) {
-            console.log('Puzzle part 2 example 3 passed');
-        } else {
-            console.log('Puzzle part 2 example 3 failed got', testCalc, 'expected', test2_ex3Result);
-        }*/
     }
 
     function TestsForPart1() {
-        let testCalc = partA('Test1');
-        if (testCalc == test1_ex1Result) {
-            console.log('Puzzle part 1 example 1 passed');
-        } else {
-            console.log('Puzzle part 1 example 1 failed got', testCalc, 'expected', test1_ex1Result);
+        for (let i = 0; i < puzzle1_number_of_test; i++) {
+            let testCalc = partA('T1_' + i);
+            if (testCalc == puzzle1_resultex[i]) {
+                console.log('Puzzle part 1 example', i, 'passed');
+            } else {
+                console.log('Puzzle part 1 example', i, 'failed got', testCalc, 'expected', puzzle1_resultex[i]);
+            }
         }
-
-        // testCalc = partA('Test2');
-        // if (testCalc == test1_ex2Result) {
-        //     console.log('Puzzle part 1 example 2 passed');
-        // } else {
-        //     console.log('Puzzle part 1 example 2 failed got', testCalc, 'expected', test1_ex2Result);
-        // }
-        // testCalc = partA('Test3');
-        // if (testCalc == test1_ex3Result) {
-        //     console.log('Puzzle part 1 example 3 passed');
-        // } else {
-        //     console.log('Puzzle part 1 example 3 failed got', testCalc, 'expected', test1_ex3Result);
-        // }
-
     }
 }
-
 main();
