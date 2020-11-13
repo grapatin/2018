@@ -1,4 +1,4 @@
-import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_ex1, puzzle2_ex2, puzzle2_ex3, test2_ex1Result, test2_ex2Result, test2_ex3Result } from "./testinput";
+import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_ex, puzzle2_number_of_test, puzzle2_resultex } from "./testinput";
 import * as fs from 'fs';
 import { assert } from "console";
 import { type } from "os";
@@ -44,16 +44,11 @@ function inputData(typeOfData: String) {
         let num = typeOfData.substring(3);
         returnData = puzzle1_ex[+num];
     }
+    if (typeOfData.startsWith('T2_')) {
+        let num = typeOfData.substring(3);
+        returnData = puzzle2_ex[+num];
+    }
     switch (typeOfData) {
-        case 'Part2Test1':
-            returnData = puzzle2_ex1;
-            break;
-        case 'Part2Test2':
-            returnData = puzzle2_ex2;
-            break;
-        case 'Part2Test3':
-            returnData = puzzle2_ex3;
-            break;
         case 'PartA':
         case 'PartB':
             let fileString = fs.readFileSync('./puzzleInput1.txt', 'utf8');
@@ -133,8 +128,10 @@ class Dungeon {
     //0 => Up, 1 = left, 2 = right, 3 = down 
     xM: Array<number> = new Array(0, -1, 1, 0);
     yM: Array<number> = new Array(-1, 0, 0, 1);
+    private elvAttack: number;
 
-    constructor(input: Array<String>) {
+    constructor(input: Array<String>, elvAttack: number = 3) {
+        this.elvAttack = elvAttack;
         let geNumber = 0;
         //find Goblins and Elves -> create a goblinandElvese class, add them to a dungeon class
         input.forEach((row, indexY) => {
@@ -188,7 +185,7 @@ class Dungeon {
         //Don't proceed if an enemy is already detected on shorter distance (TODO what if same distance?)
         steps++;
         for (let i = 0; i < 4; i++) {
-            if (steps < this.tempClosestEnemyStepsAway) {
+            if (steps <= this.tempClosestEnemyStepsAway) {
                 let newX = x + this.xM[i];
                 let newY = y + this.yM[i];
                 let char = this.tempCopyOfMap[newY][newX];
@@ -201,24 +198,14 @@ class Dungeon {
                         case 'G':
                             if (enemy == GoblinOrElvEnum.Goblin) {
                                 //enemy found!
-                                this.tempClosestEnemyStepsAway = steps;
-                                this.tempClosestEnemyX = newX;
-                                this.tempClosestEnemyY = newY;
-                                this.tempClosestEnemyPath = path + i;
-                                this.tempClosestEnemyName = char;
-                                //console.log(startGoE.char, 'found enemy Goblin', char, 'at', newX, newY, 'steps away:', steps, 'With path', path + i);
+                                this.EnemyFound(steps, newX, newY, path, i, char);
                             } else {
                                 //Friend found! Stop seaching
                             }
                             break;
                         case 'E':
                             if (enemy == GoblinOrElvEnum.Elv) {
-                                this.tempClosestEnemyStepsAway = steps;
-                                this.tempClosestEnemyX = newX;
-                                this.tempClosestEnemyY = newY;
-                                this.tempClosestEnemyPath = path + i;
-                                this.tempClosestEnemyName = char;
-                                //console.log(startGoE.char, 'found enemy Elv', char, 'at', newX, newY, 'steps away:', steps, 'With path', path + i);
+                                this.EnemyFound(steps, newX, newY, path, i, char);
                             } else {
                                 //Friend found! Stop seaching
                             }
@@ -232,6 +219,29 @@ class Dungeon {
         }
     }
 
+
+    private EnemyFound(steps: number, newX: number, newY: number, path: string, i: number, char: string) {
+        if (steps < this.tempClosestEnemyStepsAway) {
+            this.setAsNewClosestEnemy(steps, newX, newY, path, i, char);
+        } else {
+            //They are on the same distance check who is first in reading order
+            if (newY < this.tempClosestEnemyY) {
+                this.setAsNewClosestEnemy(steps, newX, newY, path, i, char);
+            } else {
+                if ((newY == this.tempClosestEnemyY) && (newX < this.tempClosestEnemyX)) {
+                    this.setAsNewClosestEnemy(steps, newX, newY, path, i, char);
+                }
+            }
+        }
+    }
+
+    private setAsNewClosestEnemy(steps: number, newX: number, newY: number, path: string, i: number, char: string) {
+        this.tempClosestEnemyStepsAway = steps;
+        this.tempClosestEnemyX = newX;
+        this.tempClosestEnemyY = newY;
+        this.tempClosestEnemyPath = path + i;
+        this.tempClosestEnemyName = char;
+    }
 
     findClosestEnemy(GoE: GoblinOrElv) {
         let enemy = null;
@@ -306,6 +316,19 @@ class Dungeon {
         return index;
     }
 
+    howManyGoblinsAreLeft(): number {
+
+        let noGoblins = this.goblinsAndElvesArray.filter(element =>
+            element.GoblinOrElv == GoblinOrElvEnum.Goblin).length;
+        return noGoblins;
+    }
+
+    howManyElvsAreLeft(): number {
+        let noGoblins = this.goblinsAndElvesArray.filter(element =>
+            element.GoblinOrElv == GoblinOrElvEnum.Elv).length;
+        return noGoblins;
+    }
+
     AreThereAnyGoblinsLeft(): boolean {
         return this.goblinsAndElvesArray.some(element =>
             element.GoblinOrElv == GoblinOrElvEnum.Goblin
@@ -328,30 +351,35 @@ class Dungeon {
                 GoE.setClosetsEnemy(enemy, this.tempClosestEnemyPath);
                 let combatTime = this.AreTheyOnAttackDistance(GoE, enemy);
                 if (combatTime) {
-                    enemy.hp -= 3
-                    if (enemy.hp < 1) {
-                        index = this.removeGoE(enemy);
-                        if (index < loop) {
-                            loop--;
-                        }
-                    }
+                    ({ index, loop } = this.attack(enemy, index, loop));
                 } else {
                     this.moveAgainstEnemy(GoE);
                     enemy = this.findClosestEnemy(GoE);
                     combatTime = this.AreTheyOnAttackDistance(GoE, enemy);
                     if (combatTime) {
-                        enemy.hp -= 3
-                        if (enemy.hp < 1) {
-                            index = this.removeGoE(enemy);
-                            if (index < loop) {
-                                loop--;
-                            }
-                        }
+                        ({ index, loop } = this.attack(enemy, index, loop));
                     }
                 }
             }
         }
         this.sortInReadingOrder();
+    }
+
+    private attack(enemy: GoblinOrElv, index: number, loop: number) {
+        let attack = 3;
+
+        if (enemy.GoblinOrElv == GoblinOrElvEnum.Goblin) {
+            attack = this.elvAttack;
+        }
+        enemy.hp -= attack;
+        if (enemy.hp < 1) {
+            index = this.removeGoE(enemy);
+            if (index < loop) {
+                loop--;
+            }
+        }
+
+        return { index, loop };
     }
 }
 
@@ -387,8 +415,43 @@ function partA(typeOfData: string): number {
 
 function partB(typeOfData: string): number {
     let input: Array<String> = processInput(typeOfData);
+    
+    for (let elvAttack = 4; elvAttack < 1000; elvAttack++) {
+        let dungeon = new Dungeon(input, elvAttack);
+        let orginalNumberOfElves = dungeon.howManyElvsAreLeft();
+        let writeOut = new WriteOutput();
+        writeOut.writeLine('Round :0');
+        writeOut.writeDungeonState(dungeon);
+        let cont = true;
+        let rounds = 0;
+        while (cont) {
+            dungeon.actionTime();
+            if (orginalNumberOfElves == dungeon.howManyElvsAreLeft()) {
+                let ElvesLeft = dungeon.AreThereAnyElvesLeft();
+                let GoblinsLeft = dungeon.AreThereAnyGoblinsLeft();
+                if (GoblinsLeft == false) {
+                    cont = false;
+                    writeOut.writeLine('Round :' + rounds);
+                    writeOut.writeDungeonState(dungeon);
+                    //Calculate score
+                    let score = 0;
+                    dungeon.goblinsAndElvesMap.forEach(Element => {
+                        score += Element.hp;
+                    })
+                    score = score * (rounds);
+                    return score;
+                } else {
+                    rounds++;
+                }
+                writeOut.writeLine('Round :' + rounds);
+                writeOut.writeDungeonState(dungeon);
+            } else {
+                //Elv has died restart but with higher attack
+                cont = false;
+            }
+        }
+    }
 
-    return 0;
 }
 
 function main() {
@@ -402,25 +465,14 @@ function main() {
 
 
     function TestsForPart2() {
-        let testCalc = partB('Part2Test1');
-        if (testCalc == test2_ex1Result) {
-            console.log('Puzzle part 2 example 1 passed');
-        } else {
-            console.log('Puzzle part 2 example 1 failed got', testCalc, 'expected', test2_ex1Result);
+        for (let i = 0; i < puzzle2_number_of_test; i++) {
+            let testCalc = partB('T2_' + i);
+            if (testCalc == puzzle2_resultex[i]) {
+                console.log('Puzzle part 2 example', i, 'passed');
+            } else {
+                console.log('Puzzle part 2 example', i, 'failed got', testCalc, 'expected', puzzle2_resultex[i]);
+            }
         }
-        /*
-        testCalc = partB('Part2Test2');
-        if (testCalc == test2_ex2Result) {
-            console.log('Puzzle part 2 example 2 passed');
-        } else {
-            console.log('Puzzle part 2 example 2 failed got', testCalc, 'expected', test2_ex2Result);
-        }
-        testCalc = partB('Part2Test3');
-        if (testCalc == test2_ex3Result) {
-            console.log('Puzzle part 2 example 3 passed');
-        } else {
-            console.log('Puzzle part 2 example 3 failed got', testCalc, 'expected', test2_ex3Result);
-        }*/
     }
 
     function TestsForPart1() {
