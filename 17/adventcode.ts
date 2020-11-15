@@ -2,28 +2,8 @@ import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_number_of
 import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
+import { WriteOutput } from "./WriteOutput";
 const readFile = util.promisify(fs.readFile);
-
-class WriteOutput {
-    fileName = 'output.txt'
-    constructor() {
-        //Clear out the file
-        fs.writeFileSync(this.fileName, '');
-    }
-
-    writeArrayOfArray(fullArray: Array<Array<string>>) {
-        let fullstring: string = '\n'; //start with an empty line
-
-        fullArray.forEach(row => {
-            fullstring += row.join('') + '\n';
-        })
-        fs.appendFileSync(this.fileName, fullstring);
-    }
-
-    writeLine(line: string) {
-        fs.appendFileSync(this.fileName, line + '\n');
-    }
-}
 
 const outFile = new WriteOutput();
 
