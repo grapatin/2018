@@ -5,7 +5,7 @@ import { defaultMaxListeners } from "stream";
 import { WriteOutput } from "./WriteOutput";
 const readFile = util.promisify(fs.readFile);
 
-const outFile = new WriteOutput();
+const writeFile = new WriteOutput();
 
 class Water {
 
@@ -234,7 +234,7 @@ function partA(typeOfData: string): number {
     let water = new Water(chart, 500 - minX, 0);
     water.waterFall();
     let count = water.countWaterSpringActive();
-    outFile.writeArrayOfArray(water.chart);
+    writeFile.writeArrayOfArray(water.chart);
 
     //Fall down until a floor |
     //Fill new space untill wall or no floor |
@@ -399,7 +399,7 @@ function specialTest() {
     let water = new Water(chart, 500 - 155, 0);
     water.waterFall();
     let count = water.countWaterSpringActive();
-    outFile.writeArrayOfArray(water.chart);
+    writeFile.writeArrayOfArray(water.chart);
 }
 
 function main() {

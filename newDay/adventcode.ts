@@ -2,8 +2,10 @@ import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_number_of
 import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
+import { WriteOutput } from "./WriteOutput";
 const readFile = util.promisify(fs.readFile);
 
+const writeFile = new WriteOutput();
 
 function inputData(typeOfData: String) {
     let returnData: string;
