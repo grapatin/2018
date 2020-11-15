@@ -40,18 +40,17 @@ class Water {
 
     waterFall() {
         let cont = true;
-        let tempX = this.currentPosX;
         let tempY = this.currentPosY;
         while (cont) {
-            let char = this.chart[tempY + 1][tempX];
+            let char = this.chart[tempY + 1][this.currentPosX];
             if (char == '.') {
                 this.currentPosY++;
                 tempY++;
-                this.chart[this.currentPosY][tempX] = '|';
+                this.chart[this.currentPosY][this.currentPosX] = '|';
             } else {
-                outFile.writeArrayOfArray(this.chart);
+                //outFile.writeArrayOfArray(this.chart);
                 cont = false;
-                if ((char == '#') || (char == '.')) {
+                if ((char == '#') || (char == '~')) {
                     //Floow found fill spare
                     this.waterFillSpace();
                 } else {
@@ -66,66 +65,74 @@ class Water {
         //Fill until atleast one waterfall, waterfall creates a recursive call
         let foundWaterFall = false;
         while (foundWaterFall == false) {
-            let cont = true;
-            let minX = this.currentPosX;
+            let minX = this.currentPosX
             let maxX = this.currentPosX;
-            let tempX = this.currentPosX;
-            let tempY = this.currentPosY;
-            while (cont) {
-                let char = this.chart[tempY][tempX];
-                let charDown = this.chart[tempY + 1][tempX];
-                if (((char == '.') || (char == '|')) && ((charDown == '#') || (charDown == '.'))) {
-                    this.chart[tempY][tempX] = '|';
-                    minX = tempX;
-                } else if ((char == '.') && (charDown == '.')) {
-                    //we have a new waterfall from
-                    this.chart[tempY][tempX] = '|';
-                    let localWater = new Water(this.chart, tempX, tempY);
-                    localWater.waterFall();
-                    cont = false;
-                    foundWaterFall = true;
-                }
-                else {
-                    cont = false;
-                }
-                tempX--;
-            }
-            cont = true;
-            tempX = this.currentPosX;
-            while (cont) {
-                let char = this.chart[tempY][tempX];
-                let charDown = this.chart[tempY + 1][tempX];
-                if (((char == '.') || (char == '|')) && ((charDown == '#') || (charDown == '.'))) {
-                    this.chart[tempY][tempX] = '|';
-                    maxX = tempX;
-                } else if ((char == '.') && (charDown == '.')) {
-                    //we have a new waterfall from
-                    this.chart[tempY][tempX] = '|';
-                    let localWater = new Water(this.chart, tempX, tempY);
-                    localWater.waterFall();
-                    foundWaterFall = true;
-                    cont = false;
-                }
-                else {
-                    cont = false;
-                }
-                tempX++;
-            }
+            let direction = -1;
+            ({ foundWaterFall, minX } = this.fillDirection(direction, foundWaterFall));
+            direction = +1;
+            ({ foundWaterFall, maxX } = this.fillDirection(direction, foundWaterFall));
             if (foundWaterFall == false) {
                 //change to still water, whole row
                 for (let _x = minX; _x < maxX + 1; _x++) {
-                    this.chart[tempY][_x] = '.';
+                    this.chart[this.currentPosY][_x] = '~';
                 }
                 this.currentPosY--;
+
+                //outFile.writeArrayOfArray(this.chart);
             }
         }
+
+    }
+
+    private fillDirection(direction, foundWaterFall: boolean) {
+        let cont = true;
+        let minX = this.currentPosX;
+        let maxX = this.currentPosX;
+        let tempX = this.currentPosX;
+        let tempY = this.currentPosY;
+        while (cont) {
+            let char = this.chart[tempY][tempX];
+            let charDown = this.chart[tempY + 1][tempX];
+            if (((char == '.') || (char == '|')) && ((charDown == '#') || (charDown == '~'))) {
+                this.chart[tempY][tempX] = '|';
+                if (tempX < minX) {
+                    minX = tempX;
+                } else if (tempX > maxX) {
+                    maxX = tempX;
+                }
+            } else if ((char == '.') && (charDown == '.')) {
+                //we have a new waterfall from
+                this.chart[tempY][tempX] = '|';
+                let localWater = new Water(this.chart, tempX, tempY);
+                localWater.waterFall();
+                cont = false;
+                foundWaterFall = true;
+            }
+            else {
+                cont = false;
+            }
+            tempX = tempX + direction;
+        }
+        return { foundWaterFall, minX, maxX };
+    }
+
+    countWaterSpringActive() {
+        let count = 0;
+        this.chart.forEach(row => {
+            row.forEach(char => {
+                if ((char == '~') || (char == '|')) {
+                    count++;
+                }
+            })
+        })
+        return count;
     }
 
     countWater() {
         let count = 0;
         this.chart.forEach(row => {
             row.forEach(char => {
-                if ((char == '.') || (char == '|')) {
+                if (char == '~') {
                     count++;
                 }
             })
@@ -246,7 +253,8 @@ function partA(typeOfData: string): number {
 
     let water = new Water(chart, 500 - minX, 0);
     water.waterFall();
-    let count = water.countWater();
+    let count = water.countWaterSpringActive();
+    outFile.writeArrayOfArray(water.chart);
 
     //Fall down until a floor |
     //Fill new space untill wall or no floor |
@@ -289,14 +297,59 @@ function partA(typeOfData: string): number {
 
 function partB(typeOfData: string): number {
     let inArray: Array<Array<number>>;
-    let maxY: number, minY: number;
+    let maxY: number, minY: number, minX: number, maxX: number;
     let returns = processInput(typeOfData);
 
     inArray = returns.inArray;
     maxY = returns.maxY;
     minY = returns.minY;
+    minX = returns.minX - 5; //Take care of eventual overflow
+    maxX = returns.maxX + 5; //same
 
-    return 0;
+    let chart: Array<Array<string>> = new Array;
+    prepareStartChart();
+
+    let water = new Water(chart, 500 - minX, 0);
+    water.waterFall();
+    let count = water.countWater();
+
+    //Fall down until a floor |
+    //Fill new space untill wall or no floor |
+    //If space is full move one step up (on the flow marker)=> change | to . for the static water
+
+    return count;
+
+    function prepareStartChart() {
+        let xRow: Array<string> = new Array;
+
+        //Row 0
+        for (let x = minX; x < maxX + 1; x++) {
+            xRow.push('.');
+        }
+        chart.push(xRow);
+
+        for (let y = minY; y < maxY + 1; y++) {
+            xRow = new Array;
+            for (let x = minX; x < maxX + 1; x++) {
+                xRow.push('.');
+            }
+            chart.push(xRow);
+        }
+
+        inArray.forEach(cords => {
+            chart[cords[1] - minY + 1][cords[0] - minX] = '#';
+        });
+
+        chart[0][500 - minX] = '+';
+
+        //Add end marker
+        xRow = new Array;
+        for (let x = minX; x < maxX + 1; x++) {
+            xRow.push('=');
+        }
+
+        chart.push(xRow);
+    }
 }
 
 
@@ -365,21 +418,22 @@ function specialTest() {
 
     let water = new Water(chart, 500 - 155, 0);
     water.waterFall();
-    let count = water.countWater();
+    let count = water.countWaterSpringActive();
+    outFile.writeArrayOfArray(water.chart);
 }
 
 function main() {
 
-    specialTest();
-    /*
-        TestsForPart1();
-        let resultPart1 = partA('PartA');
-        console.log('Puzzle part 1 solution is', resultPart1);
+    //specialTest();
+
+    TestsForPart1();
+    let resultPart1 = partA('PartA');
+    console.log('Puzzle part 1 solution is', resultPart1);
     
-        TestsForPart2();
-        let resultPart2 = partB('PartB');
-        console.log('Puzzle part 2 solution is', resultPart2);
-    */
+    TestsForPart2();
+    let resultPart2 = partB('PartB');
+    console.log('Puzzle part 2 solution is', resultPart2);
+
 
     function TestsForPart2() {
         for (let i = 0; i < puzzle2_number_of_test; i++) {
