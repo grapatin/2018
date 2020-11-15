@@ -1,5 +1,5 @@
-export const puzzle1_number_of_test = 5;
-export const puzzle2_number_of_test = 5;
+export const puzzle1_number_of_test = 1;
+export const puzzle2_number_of_test = 0;
 //First part
 export const puzzle1_ex = new Array;
 export const puzzle1_resultex = new Array;
@@ -7,13 +7,16 @@ export const puzzle2_ex = new Array;
 export const puzzle2_resultex = new Array;
 puzzle1_resultex[0] = 36334;
 puzzle1_ex[0] = `
-#######
-#G..#E#
-#E#E.E#
-#G.##.#
-#...#E#     
-#...E.#
-#######`;
+.#.#...|#.
+.....#|##|
+.|..|...#.
+..|#.....#
+#.#|||#|#|
+...#.||...
+.|....|...
+||...#|.#|
+|.||||..|.
+...#.|..|.`;
 
 puzzle1_resultex[1] = 39514;
 puzzle1_ex[1] = `

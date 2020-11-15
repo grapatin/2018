@@ -34,26 +34,55 @@ function inputData(typeOfData: String) {
 function processInput(typeofData: string) {
     let rawInput = inputData(typeofData);
 
-    let inputArray: Array<String> = new Array();
-    const regex: RegExp = /(-?[0-9]+[,]\s+-?[0-9]+)/gmus;
+    let inputArray: Array<Array<String>> = new Array();
 
-    let temp = rawInput.match(regex);
 
-    temp.forEach(element => {
-        inputArray.push(element);
+    let rows = rawInput.split('\n');
+
+    rows.forEach(row => {
+        let charArray: Array<string> = new Array();
+        charArray = row.split('');
+        inputArray.push(charArray);
     })
 
     return inputArray;
 }
 
-function partA(typeOfData: string): number {
-    let input: Array<String> = processInput(typeOfData);
 
-    return 0;
+class MagicForest {
+    forest: Array<Array<string>>
+    constructor(forest) {
+        this.forest = forest;
+    }
+    grow() {
+        //copy forst to temp
+        //calculate
+        //swap temp to temp
+    }
+
+    printForest() {
+        writeFile.writeArrayOfArray(this.forest);
+    }
+    countScore(): number {
+        return 0
+    }
+}
+
+function partA(typeOfData: string): number {
+    let input: Array<Array<String>> = processInput(typeOfData);
+    const seconds = 0;
+    let forest = new MagicForest(input);
+
+    for (let i = 0; i < seconds; i++) {
+        forest.grow();
+        forest.printForest();
+    }
+    
+    return forest.countScore();
 }
 
 function partB(typeOfData: string): number {
-    let input: Array<String> = processInput(typeOfData);
+    let input: Array<Array<String>> = processInput(typeOfData);
 
     return 0;
 }
