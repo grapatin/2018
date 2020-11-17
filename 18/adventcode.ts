@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
 import { WriteOutput } from "./WriteOutput";
+import { timingSafeEqual } from "crypto";
 const readFile = util.promisify(fs.readFile);
 
 const writeFile = new WriteOutput();
@@ -49,31 +50,120 @@ function processInput(typeofData: string) {
 }
 
 
+
 class MagicForest {
-    forest: Array<Array<string>>
+    forest: Array<Array<string>>;
+    tempForest: Array<Array<string>>;
     constructor(forest) {
         this.forest = forest;
     }
+    xSurround = [-1, -1, -1, 0, 1, 1, 1, 0]; //(left side first, top, rigth, down)
+    ySurround = [1, 0, -1, -1, -1, 0, 1, 1]; //(left side first, top, rigth, down)
     grow() {
-        //copy forst to temp
+        //Create local copy of forest
+        this.tempForest = this.forest.map(function (row) {
+            return row.slice();
+        });
+
+        //. = open
+        //| = tree
+        //# = lumberyard
+        for (let y = 0; y < this.forest.length; y++) {
+            let row = this.forest[y];
+            for (let x = 0; x < row.length; x++) {
+                let char = this.forest[y][x];
+                let numberOfTree = 0;
+                let numberOfOpen = 0;
+                let numberOfLumber = 0;
+
+                this.xSurround.forEach((xDelta, index) => {
+                    let yDelta = this.ySurround[index];
+                    let xTemp = x + xDelta;
+                    let yTemp = y + yDelta;
+                    if ((xTemp > -1) && (yTemp > -1) && (xTemp < row.length) && (yTemp < this.forest.length)) {
+                        let checkChar = this.forest[yTemp][xTemp];
+                        switch (checkChar) {
+                            case '.':
+                                numberOfOpen++;
+                                break;
+                            case '|':
+                                numberOfTree++;
+                                break;
+                            case '#':
+                                numberOfLumber++;
+                                break;
+                        }
+                    }
+                });
+                switch (char) {
+                    case '.':
+                        if (numberOfTree > 2) {
+                            this.tempForest[y][x] = '|';
+                        }
+                        break;
+                    case '|':
+                        if (numberOfLumber > 2) {
+                            this.tempForest[y][x] = '#';
+                        }
+                        break;
+                    case '#':
+                        if ((numberOfLumber > 0) && (numberOfTree > 0)) {
+                            this.tempForest[y][x] = '#';
+                        } else {
+                            this.tempForest[y][x] = '.';
+                        }
+                        break;
+                }
+            }
+        }
+        this.forest = this.tempForest;
+        //An open acre will become filled with trees if three or more adjacent acres contained trees. Otherwise, nothing happens.
+        //An acre filled with trees will become a lumberyard if three or more adjacent acres were lumberyards. Otherwise, nothing happens.
+        //An acre containing a lumberyard will remain a lumberyard if it was adjacent to at least one other lumberyard and at least one acre containing trees. 
+        //Otherwise, it becomes open.
         //calculate
-        //swap temp to temp
+        //swap tempForest to forest
     }
 
     printForest() {
         writeFile.writeArrayOfArray(this.forest);
     }
     countScore(): number {
-        return 0
+
+        //. = open
+        //| = tree
+        //# = lumberyard
+        let numberOfTree = 0;
+        let numberOfOpen = 0;
+        let numberOfLumber = 0;
+        for (let y = 0; y < this.forest.length; y++) {
+            let row = this.forest[y];
+            for (let x = 0; x < row.length; x++) {
+                let char = this.forest[y][x];
+                switch (char) {
+                    case '.':
+                        numberOfOpen++;
+                        break;
+                    case '|':
+                        numberOfTree++;
+                        break;
+                    case '#':
+                        numberOfLumber++;
+                        break;
+                }
+            }
+        }
+        return numberOfLumber * numberOfTree;
     }
 }
 
 function partA(typeOfData: string): number {
     let input: Array<Array<String>> = processInput(typeOfData);
-    const seconds = 0;
+    const minutes = 10;
     let forest = new MagicForest(input);
+    forest.printForest();
 
-    for (let i = 0; i < seconds; i++) {
+    for (let i = 0; i < minutes; i++) {
         forest.grow();
         forest.printForest();
     }
@@ -83,8 +173,46 @@ function partA(typeOfData: string): number {
 
 function partB(typeOfData: string): number {
     let input: Array<Array<String>> = processInput(typeOfData);
+    const minutes = 10000;
+    let forest = new MagicForest(input);
+    forest.printForest();
 
-    return 0;
+    for (let i = 0; i < minutes; i++) {
+        forest.grow();
+        forest.printForest();
+    }
+
+    //check to find repeating pattern.
+    let score = 0;
+    let scoreMap: Map<number, number> = new Map;
+    let firstRepeat = 0;
+    let secondRepeat = 0;
+    for (let j = minutes; j < minutes + 100; j++) {
+        forest.grow();
+        score = forest.countScore();
+        if (scoreMap.has(score)) {
+            if (firstRepeat == 0) {
+                firstRepeat = j;
+            } else if (secondRepeat == 0) {
+                secondRepeat = j;
+            }
+        } else {
+            scoreMap.set(score, j);
+        }
+    }
+
+    if (firstRepeat == (secondRepeat - 1)) {
+        //we have a repeating pattern after 
+        let currentPassedMin = minutes + 100;
+        let repeatingPatternAfter = firstRepeat - minutes;
+        let thisManyMinutesAreLeft = 1000000000 - currentPassedMin;
+        let ModuloWithPattern = thisManyMinutesAreLeft % repeatingPatternAfter;
+        console.log('Pattern found at', repeatingPatternAfter);
+
+        console.log('Final score is the same as at number of mins=', currentPassedMin + ModuloWithPattern);
+    }
+
+    return score;
 }
 
 function main() {

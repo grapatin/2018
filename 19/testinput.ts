@@ -5,17 +5,16 @@ export const puzzle1_ex = new Array;
 export const puzzle1_resultex = new Array;
 export const puzzle2_ex = new Array;
 export const puzzle2_resultex = new Array;
-puzzle1_resultex[0] = 1147;
-puzzle1_ex[0] = `.#.#...|#.
-.....#|##|
-.|..|...#.
-..|#.....#
-#.#|||#|#|
-...#.||...
-.|....|...
-||...#|.#|
-|.||||..|.
-...#.|..|.`;
+puzzle1_resultex[0] = 6;
+puzzle1_ex[0] = `
+#ip 0
+seti 5 0 1
+seti 6 0 2
+addi 0 1 0
+addr 1 2 3
+setr 1 0 0
+seti 8 0 4
+seti 9 0 5`;
 
 puzzle1_resultex[1] = 39514;
 puzzle1_ex[1] = `
