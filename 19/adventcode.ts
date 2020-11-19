@@ -20,157 +20,236 @@ class OpCodeExecuter {
         this.registry = registryInput.slice();
         this.ip = 0;
     }
-
+    //Add register*
     addr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] + this.registry[input[B]];
-        this.registry = output;
+        let result = register_A + register_B;
+
+        this.registry[output] = result;
     }
+    //add immediate*
     addi(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] + input[B];
-        this.registry = output;
+        let result = register_A + input_B;
+
+        this.registry[output] = result;
     }
 
+    //multiply register*
     mulr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] * this.registry[input[B]];
-        this.registry = output;
+        let result = register_A * register_B;
+
+        this.registry[output] = result;
     }
 
+    //multiply immediate*1
     muli(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] * input[B];
-        this.registry = output;
+        let result = register_A * input_B;
+
+        this.registry[output] = result;
     }
 
+    //bitwise AND register
     banr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] & this.registry[input[B]];
-        this.registry = output;
+        let result = register_A & register_B;
+
+        this.registry[output] = result;
     }
 
+    //bitwise AND immediate
     bani(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] & input[B];
-        this.registry = output;
+        let result = register_A & input_B;
+
+        this.registry[output] = result;
     }
 
+    //bitwise OR register
     borr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] | this.registry[input[B]];
-        this.registry = output;
+        let result = register_A | register_B;
+
+        this.registry[output] = result;
+
     }
 
+    //bitwise OR immediate
     bori(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]] | input[B];
-        this.registry = output;
+        let result = register_A | input_B;
+
+        this.registry[output] = result;
     }
 
+    //set register*
     setr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let input_A = input[A];
+        let input_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[input_A];
+        let register_B = this.registry[input_B];
 
-        output[input[C]] = this.registry[input[A]];
-        this.registry = output;
+        let result = register_A;
+
+        this.registry[output] = result;
     }
 
+    //set immediate*
     seti(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
 
-        output[input[C]] = input[A];
-        this.registry = output;
+        let result = value_A;
+
+        this.registry[output] = result;
     }
 
+    //greater-than immediate/register
     gtir(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (input[A] > this.registry[input[B]]) {
-            output[input[C]] = 1;
+        if (value_A > register_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 
+    //greater-than register/immediate
     gtri(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (input[B] < this.registry[input[A]]) {
-            output[input[C]] = 1;
+        if (register_A > value_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 
-
+    //greater-than register/register*
     gtrr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (this.registry[input[A]] > this.registry[input[B]]) {
-            output[input[C]] = 1;
+        if (register_A > register_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 
+    //equal immediate/register
     eqir(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (input[A] == this.registry[input[B]]) {
-            output[input[C]] = 1;
+        if (value_A == register_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 
+    //equal register/immediate
     eqri(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (input[B] == this.registry[input[A]]) {
-            output[input[C]] = 1;
+        if (register_A == value_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 
+    //equal register/register*
     eqrr(input: Array<number>) {
-        let output: Array<number> = new Array;
-        output = this.registry.slice();
+        let value_A = input[A];
+        let value_B = input[B];
+        let output = input[C];
+        let register_A = this.registry[value_A];
+        let register_B = this.registry[value_B];
+        let result: number;
 
-        if (this.registry[input[A]] == this.registry[input[B]]) {
-            output[input[C]] = 1;
+        if (register_A == register_B) {
+            result = 1;
         } else {
-            output[input[C]] = 0;
+            result = 0;
         }
-        this.registry = output;
+        this.registry[output] = result;
     }
 }
 
@@ -239,10 +318,17 @@ function partA(typeOfData: string): number {
 
     let cont = true;
     let ip = op.registry[IpRegestry];
+    let commandsMap: Map<string, number> = new Map;
+
 
     while (cont) {
         op.registry[IpRegestry] = ip;
         let codeBlock = codeArray[ip];
+        let count: number = 0;
+        if (commandsMap.has(codeBlock.command)) {
+            count = commandsMap.get(codeBlock.command);
+        };
+        commandsMap.set(codeBlock.command, ++count);
         switch (codeBlock.command) {
             case 'addr':
                 op.addr(codeBlock.dataArray);
@@ -303,6 +389,7 @@ function partA(typeOfData: string): number {
             cont = false
         }
     }
+    console.log('CommandMap', commandsMap)
     return op.registry[0];
 }
 
@@ -326,10 +413,16 @@ function partB(typeOfData: string): number {
 
     let cont = true;
     let ip = op.registry[IpRegestry];
+    let commandsMap: Map<string, number> = new Map;
 
     while (cont) {
         op.registry[IpRegestry] = ip;
         let codeBlock = codeArray[ip];
+        let count: number = 0;
+        if (commandsMap.has(codeBlock.command)) {
+            count = commandsMap.get(codeBlock.command);
+        };
+        commandsMap.set(codeBlock.command, ++count);
         switch (codeBlock.command) {
             case 'addr':
                 op.addr(codeBlock.dataArray);
@@ -380,7 +473,7 @@ function partB(typeOfData: string): number {
                 op.eqrr(codeBlock.dataArray);
                 break;
             default:
-                assert('Unexpected command', codeBlock.command);
+                console.log('Unexpected command', codeBlock.command);
                 break;
         }
         ip = op.registry[IpRegestry]
