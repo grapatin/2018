@@ -7,7 +7,7 @@ const readFile = util.promisify(fs.readFile);
 
 const writeFile = new WriteOutput();
 
-function inputData(typeOfData: String) {
+function inputData(typeOfData: string) {
     let returnData: string;
     //load data    
     if (typeOfData.startsWith('T1_')) {
