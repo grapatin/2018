@@ -1,4 +1,4 @@
-import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_number_of_test, puzzle2_resultex } from "./testinput";
+import { puzzle1_ex, puzzle1_number_of_test, puzzle1_resultex, puzzle2_ex, puzzle2_number_of_test, puzzle2_resultex } from "./testinput";
 import * as fs from 'fs';
 import * as util from 'util'
 import { defaultMaxListeners } from "stream";
@@ -16,7 +16,7 @@ function inputData(typeOfData: String) {
     }
     if (typeOfData.startsWith('T2_')) {
         let num = typeOfData.substring(3);
-        returnData = puzzle1_ex[+num];
+        returnData = puzzle2_ex[+num];
     }
     switch (typeOfData) {
         case 'PartA':
