@@ -396,6 +396,17 @@ function partA(typeOfData: string): number {
 function partB(typeOfData: string): number {
     let input: Array<string> = processInput(typeOfData);
 
+
+    const factorThis = 10551306;
+    let sum = 0;
+
+    for (let i = 1; i < factorThis + 1; i++) {
+        if (factorThis % i == 0) {
+            sum += i;
+        }
+    }
+    return sum;
+
     let op = new OpCodeExecuter([1, 0, 0, 0, 0, 0])
 
     let IpRegestry: number = +input.shift();
