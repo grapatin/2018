@@ -199,7 +199,7 @@ class MazeWalker {
         this.targetY = targetY;
         this.maze = maze;
         this.maze.mazeArray_yx[0][0].stateMap.set(tool.torch, 0);
-        this.mazeMaxBeforeStop = Math.min((targetX + targetY) * 7, 1118); //teoretical max we know it is less than 1117
+        this.mazeMaxBeforeStop = Math.min((targetX + targetY) * 7, 1118); //teoretical max we know it is less than 1115
     }
 
     get minTimeSoFar() {
