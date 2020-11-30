@@ -50,9 +50,16 @@ class FightingGroup {
     _initiate: number;
     _targetSelected: FightingGroup;
     _selectedAsTargetBy: FightingGroup;
-    constructor() {
+    _immuneSystem: boolean;
+    _boost: number = 0;
+    constructor(immuneSystem: boolean) {
         this._immune = new Array(1).fill(attacks.none);
         this._weakness = new Array(1).fill(attacks.none);
+        this._immuneSystem = immuneSystem;
+        this._boost = 0;
+    }
+    set boost(boost: number) {
+        this._boost = boost;
     }
     set units(unit: number) {
         if ((unit != undefined) && (!isNaN(unit))) {
@@ -151,7 +158,7 @@ class FightingGroup {
     }
 
     get effectivePower(): number {
-        return this._damage * this._units;
+        return (this._damage + this._boost) * this._units;
     }
 
     get initiate(): number {
@@ -184,7 +191,7 @@ function processInput(typeofData: string) {
     immuneGroupsString.shift();
 
     immuneGroupsString.forEach(row => {
-        let figthingGroup = new FightingGroup;
+        let figthingGroup = new FightingGroup(true);
         let Immune = row.matchAll(regex);
         for (let result of Immune) {
             let { NoUnits, hitPoints, weak, damage, damageType, intiative, immune } = result.groups;
@@ -204,7 +211,7 @@ function processInput(typeofData: string) {
     infectionGroupsString.shift();
 
     infectionGroupsString.forEach(row => {
-        let figthingGroup = new FightingGroup;
+        let figthingGroup = new FightingGroup(false);
         let Immune = row.matchAll(regex);
         for (let result of Immune) {
             let { NoUnits, hitPoints, weak, damage, damageType, intiative, immune } = result.groups;
@@ -231,10 +238,15 @@ class RulesClass {
     _combinedArraySortedAfterInitiate: Array<FightingGroup>;
     _round = 0;
 
-    constructor(figthingGroupArray: Array<Array<FightingGroup>>) {
+    constructor(figthingGroupArray: Array<Array<FightingGroup>>, boost?: number) {
         this._immuneArraySortedAfterEffectivePower = this._sortAfterEffectivePower(figthingGroupArray[0]);
         this._infectionArraySortedAfterEffectivePower = this._sortAfterEffectivePower(figthingGroupArray[1]);
         this._combinedArraySortedAfterInitiate = this.sortAfterInitiate(figthingGroupArray[0].concat(figthingGroupArray[1]))
+        if (boost > 0) {
+            this._immuneArraySortedAfterEffectivePower.forEach(el => {
+                el._damage = el._damage + boost;
+            })
+        }
     }
 
     reSortAfterEffectivePower() {
@@ -387,6 +399,16 @@ class RulesClass {
         return ongoing
     }
 
+    didImmuneWin(): boolean {
+        let immuneWon = false;
+        this._immuneArraySortedAfterEffectivePower.forEach(el => {
+            if (el.units > 0) {
+                immuneWon = true;
+            }
+        });
+        return immuneWon;
+    }
+
     private setTarget(maxAttack: number, tempAttack: number, maxTotalPower: number, infectionGroup: FightingGroup, maxIniative: number, selectedTarget: any) {
         maxAttack = tempAttack;
         maxTotalPower = infectionGroup.effectivePower;
@@ -417,23 +439,16 @@ function partA(typeOfData: string): number {
     let input: Array<Array<FightingGroup>> = processInput(typeOfData);
 
     let actor = new RulesClass(input);
-    //Sort Immune system and infection into 2 list where groups are sorted after effective power and iniative
-
-    //target selection (each group select 1-0 targets i order of dealt damage, effective power and iniative)
-    //Each group can only be attached once
-
     let cont = true;
+    let infectionWon = true;
     while (cont) {
-        actor.selectTargetForAll();
-        actor.battleRound();
-        //actor.consoleLogState();
-        actor.reSortAfterEffectivePower();
-        cont = actor.BattleOngoing();
+            actor.selectTargetForAll();
+            actor.battleRound();
+            //actor.consoleLogState();
+            actor.reSortAfterEffectivePower();
+            cont = actor.BattleOngoing();
     }
 
-    //Now sort after iniative but for all groups
-    //Attack after iniative, dealing effictive power damage (unless imune or weak (2x))
-    //Loose whole units (hp*number)
     let units = 0;
     actor._combinedArraySortedAfterInitiate.forEach(group => {
         units = units + group.units;
@@ -443,9 +458,32 @@ function partA(typeOfData: string): number {
 }
 
 function partB(typeOfData: string): number {
-    let input: Array<Array<FightingGroup>> = processInput(typeOfData);
+    let input: Array<Array<FightingGroup>>
+    let actor: RulesClass;
+    let infectionWon = true;
+    let boost = 0;
+    while (infectionWon) {
+        input = processInput(typeOfData);
+        boost++;
+        let cont = true;
+        actor = new RulesClass(input, boost);
+        while (cont) {
+            actor.selectTargetForAll();
+            actor.battleRound();
+            actor.reSortAfterEffectivePower();
+            //actor.consoleLogState();
+            cont = actor.BattleOngoing();
+        }
+        console.log('Boost', boost);
+        infectionWon = !actor.didImmuneWin();
+    }
+    let units = 0;
+    actor._combinedArraySortedAfterInitiate.forEach(group => {
+        units = units + group.units;
+    })
 
-    return 0;
+
+    return units;
 }
 
 function main() {
